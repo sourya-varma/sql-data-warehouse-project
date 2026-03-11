@@ -1,0 +1,786 @@
+Source System Analysis — Child-Simple Study Notes
+1. What is source system analysis?
+
+Source system analysis means:
+
+Before extracting data, we study the source system to understand:
+
+what the system does
+
+why the business uses it
+
+what data is inside it
+
+where the data is stored
+
+how we can access it
+
+how much data is there
+
+whether we need full load or incremental load
+
+whether extraction will affect performance
+
+whether we have permission to access it
+
+Simple meaning
+
+It means:
+
+“Before taking data, first understand the system properly.”
+
+Very simple example
+
+If someone gives you a box and asks you to take things from it, first you ask:
+
+what is this box?
+
+who owns it?
+
+what is inside it?
+
+can I open it?
+
+can I take everything?
+
+will it break if I use it?
+
+Source system analysis is the same idea.
+
+Area 1: Business Context and Ownership
+
+This is the first area to understand.
+
+Because before touching tables, you must know:
+
+what the system does for the business
+
+who owns the data
+
+what problem the system solves
+
+A. Who owns the data?
+Simple meaning
+
+This means:
+
+Who is responsible for this data?
+Who takes care of it?
+
+It may be:
+
+business team
+
+application team
+
+DBA team
+
+vendor team
+
+product owner
+
+Why this matters
+
+Because the data owner helps us:
+
+understand what the data means
+
+clarify doubts
+
+confirm if data is correct
+
+approve access
+
+inform us about schema changes
+
+Example
+
+vehicle registration data → DMV operations team
+
+billing data → finance team
+
+Child-simple meaning
+
+Data owner = the person or team responsible for the data and taking care of it.
+
+Interview line
+
+“We first identify the data owner because they help validate business meaning, approve access, and clarify any issues in the source data.”
+
+B. What business process does it support?
+Simple meaning
+
+This means:
+
+What is this system used for?
+Or:
+
+What business problem is this system solving?
+
+Examples:
+
+customer onboarding
+
+vehicle registration
+
+claims processing
+
+order management
+
+inspections
+
+payments
+
+Why this matters
+
+Because data makes sense only when you understand the business process.
+
+Example
+
+Suppose a table has:
+
+status = A
+
+Without business context, you may think:
+
+A = Active
+
+But in that system, it may actually mean:
+
+A = Approved
+
+So business understanding gives the true meaning of data.
+
+Child-simple meaning
+
+This teaches us why the system exists and what work it does for the business.
+
+Interview line
+
+“We understand what business process the source system supports so we can interpret the data correctly.”
+
+C. System and data documentation
+Simple meaning
+
+Ask whether documents already exist.
+
+Examples:
+
+source system overview document
+
+ETL mapping document
+
+table descriptions
+
+column descriptions
+
+API documentation
+
+business glossary
+
+source-to-target mapping
+
+data dictionary
+
+Why this matters
+
+Because documentation saves time.
+
+Instead of guessing, documentation tells us:
+
+which tables are important
+
+what each column means
+
+which values are valid
+
+which tables are active
+
+which tables are obsolete
+
+how extraction should happen
+
+If documentation is missing
+
+Then we depend more on:
+
+SMEs
+
+DBAs
+
+data owners
+
+data profiling
+
+Child-simple meaning
+
+Documentation helps us understand the system and the columns/fields inside it.
+
+Interview line
+
+“Documentation helps us understand table purpose, column meaning, relationships, and extraction rules faster and more accurately.”
+
+D. Data model and data catalog
+1. Data model
+Simple meaning
+
+It shows:
+
+How tables are related
+
+Examples:
+
+customer table linked to address table
+
+vehicle table linked to inspection table
+
+order table linked to order items table
+
+Why this matters
+
+Because it helps us understand:
+
+parent-child relationships
+
+joins
+
+primary keys
+
+foreign keys
+
+master tables
+
+transaction tables
+
+Child-simple meaning
+
+Data model teaches how tables are connected.
+
+2. Data catalog
+Simple meaning
+
+A data catalog is like an inventory or index of data assets.
+
+It tells:
+
+table names
+
+column names
+
+definitions
+
+owners
+
+data types
+
+tags
+
+sensitivity
+
+Why this matters
+
+Because it helps us:
+
+find the right data quickly
+
+reduce confusion
+
+support governance
+
+understand available data assets
+
+Child-simple meaning
+
+Data catalog teaches what data is available and what it means.
+
+Interview line
+
+“The data model helps us understand table relationships, while the data catalog helps us discover and interpret available data assets.”
+
+Area 2: Architecture and Technology Stack
+
+Now we move from business understanding to technical understanding.
+
+Now we ask:
+
+Where is the data stored, and how can we access it?
+
+A. How is data stored?
+Simple meaning
+
+This means:
+
+Which technology stores the data?
+
+Examples:
+
+SQL Server
+
+Oracle
+
+PostgreSQL
+
+MySQL
+
+MongoDB
+
+AWS RDS
+
+Azure SQL
+
+flat files
+
+data lake
+
+SaaS application
+
+Why this matters
+
+Because extraction method depends on storage type.
+
+Examples
+
+Oracle → DMS, direct query, CDC
+
+SQL Server → CDC, full extract
+
+API system → no direct table access
+
+files → CSV or JSON extract
+
+Kafka → streaming events
+
+So storage type decides
+
+extraction approach
+
+tools
+
+authentication
+
+performance planning
+
+Child-simple meaning
+
+This teaches where the data is stored and what technology is used to keep it.
+
+Interview line
+
+“We identify the storage technology because the extraction method and integration design depend on where and how the source data is stored.”
+
+B. What are the integration capabilities?
+Simple meaning
+
+This means:
+
+How can the system share data with us?
+
+Possible ways:
+
+direct database connection
+
+API
+
+Kafka / event stream
+
+file extracts
+
+CDC
+
+webhooks
+
+vendor export
+
+replication tools like DMS
+
+Why this matters
+
+Because not every source allows direct DB access.
+
+Examples
+
+some systems only allow API
+
+some send daily CSV files
+
+some support CDC
+
+some publish events to Kafka
+
+some allow read-only DB connection
+
+Child-simple meaning
+
+Integration capabilities means the ways the source system can give data to us.
+
+Interview line
+
+“We assess the source system’s integration capabilities to decide whether data should be extracted through direct DB access, APIs, files, or event-based methods.”
+
+Area 3: Extract and Load Planning
+
+This is where we decide:
+
+How extraction will happen in real life
+
+This is very important.
+
+A. Incremental vs Full Load
+Full load
+Meaning
+
+Take all records every time
+
+Example
+
+Read full customer table of 10 million rows again.
+
+Use when
+
+first-time load
+
+small table
+
+no change tracking available
+
+Problems
+
+slow
+
+heavy on source
+
+expensive
+
+repeats same data
+
+Incremental load
+Meaning
+
+Take only new or changed records
+
+Example
+
+Only rows updated after yesterday.
+
+Use when
+
+daily or regular loads
+
+large tables
+
+source supports timestamp / CDC / change tracking
+
+Benefits
+
+faster
+
+less load
+
+efficient
+
+Child-simple meaning
+
+Full load = take everything
+Incremental load = take only new or changed data
+
+Interview line
+
+“We determine whether extraction should be full or incremental based on source capabilities, data volume, and business needs.”
+
+B. Data scope and historical needs
+Simple meaning
+
+This means:
+
+How much data do we really need?
+
+Questions:
+
+do we need all tables or only some?
+
+do we need all columns or only important ones?
+
+do we need only current data or history also?
+
+how many years of history are required?
+
+Why this matters
+
+Because the business may not need everything.
+
+Example
+
+Source has 500 tables, but only 40 may matter for the warehouse.
+
+History examples
+
+3 years of claims history
+
+full customer history
+
+only active records
+
+daily snapshots
+
+Child-simple meaning
+
+This teaches what data we need and how much old data we need.
+
+Interview line
+
+“We define data scope and history requirements so we extract only relevant data and meet reporting or compliance needs.”
+
+C. What is the expected size of extracts?
+Simple meaning
+
+This means:
+
+How big is the data?
+
+Ask:
+
+row counts
+
+daily growth
+
+file sizes
+
+changed rows per day
+
+largest tables
+
+average extract size
+
+Why this matters
+
+Because size affects:
+
+network
+
+storage
+
+job duration
+
+partitioning
+
+performance
+
+tool selection
+
+Example
+
+small table → 50,000 rows
+
+large table → 2 billion rows
+
+daily CDC → 2 million rows
+
+Child-simple meaning
+
+This teaches how much data we are going to pull and whether our system can handle it.
+
+Interview line
+
+“We estimate extract size to plan infrastructure, job design, scheduling, and performance optimization.”
+
+D. Are there data volume limitations?
+Simple meaning
+
+This means:
+
+Can the source handle large reads, or are there restrictions?
+
+Examples:
+
+API allows only 10,000 records per call
+
+extraction allowed only at night
+
+source cannot handle heavy full-table scans
+
+vendor gives only weekly export
+
+network bandwidth is limited
+
+Why this matters
+
+Because even if data exists, we may not be allowed to pull too much too fast.
+
+Child-simple meaning
+
+This teaches whether the source has limits on how much data we can pull and how safely we should extract it.
+
+Interview line
+
+“We identify any source-side or interface limitations so extraction can be designed safely and within operational boundaries.”
+
+E. How to avoid impacting source system performance?
+Simple meaning
+
+Source systems are usually operational systems.
+Their main job is to support business users, not our ETL.
+
+If extraction is too heavy:
+
+app becomes slow
+
+users complain
+
+DBA team blocks the job
+
+Ways to avoid impact
+
+use incremental loads
+
+use CDC instead of full scans
+
+schedule off-hours extraction
+
+read from replica / read-only copy
+
+extract only needed columns
+
+extract only needed rows
+
+batch the data
+
+avoid complex joins on source
+
+coordinate with DBA
+
+Child-simple meaning
+
+This teaches how to take data without making the source system slow.
+
+Interview line
+
+“We design extraction carefully to avoid affecting source system performance, usually by using incremental loads, off-hours scheduling, limited queries, or CDC-based approaches.”
+
+F. Authentication and authorization
+Authentication
+Meaning
+
+How do we prove who we are?
+
+Examples:
+
+username/password
+
+IAM role
+
+service account
+
+token
+
+certificate
+
+Authorization
+Meaning
+
+What are we allowed to access?
+
+Examples:
+
+read-only access
+
+only selected tables
+
+no PII access
+
+API scope restrictions
+
+Why this matters
+
+Because without correct access:
+
+we cannot connect
+
+we may access wrong data
+
+security rules may be broken
+
+Child-simple meaning
+
+Authentication = who are you?
+
+Authorization = what are you allowed to access?
+
+Interview line
+
+“We confirm authentication and authorization requirements to ensure secure and approved access to the source system.”
+
+Final Easy Summary
+Why do we do source system analysis?
+
+Because before extracting data, we must understand:
+
+who owns the data
+
+what business problem the system solves
+
+what documentation exists
+
+how tables are related
+
+what data is available
+
+where data is stored
+
+how data can be shared
+
+whether we should do full or incremental load
+
+how much data we need
+
+how big the extracts are
+
+whether there are limitations
+
+how to avoid affecting source performance
+
+what access is needed
+
+One-line final meaning
+
+Source system analysis means understanding the business, data, technology, extraction options, limitations, and security before building the pipeline.
+
+Short Interview Answer
+
+“Source system analysis is the process of understanding a source before extracting data from it. We study the business purpose, data owner, documentation, table relationships, storage technology, integration options, data volume, load strategy, performance constraints, and access rules. This helps us extract the right data in the right way without affecting the source system.”
+
+Ultra-Simple Revision Sheet
+Area 1: Business context and ownership
+
+who owns the data?
+
+what business process does it support?
+
+what documents are available?
+
+how are tables related?
+
+what data assets exist?
+
+Area 2: Architecture and technology stack
+
+where is data stored?
+
+what technology is used?
+
+how can the source share data?
+
+Area 3: Extract and load planning
+
+full load or incremental?
+
+what data is needed?
+
+how much history is needed?
+
+how big is the extract?
+
+are there any limits?
+
+how do we avoid source impact?
+
+what access is needed?
